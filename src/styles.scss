@@ -1,0 +1,210 @@
+@use '@angular/material' as mat;
+
+// TM Music brand palette - neutral e-commerce with teal accent
+// Easy to rebrand by changing these palettes
+
+$tm-primary: mat.m2-define-palette(mat.$m2-teal-palette, 700);
+$tm-accent: mat.m2-define-palette(mat.$m2-green-palette, A400);
+$tm-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+$tm-typography: mat.m2-define-typography-config(
+  $font-family: "'Inter', 'Roboto', 'Helvetica Neue', sans-serif",
+  $headline-5: mat.m2-define-typography-level(2rem, 2.5rem, 700),
+  $headline-6: mat.m2-define-typography-level(1.5rem, 2rem, 600),
+  $subtitle-1: mat.m2-define-typography-level(1.125rem, 1.75rem, 600),
+  $body-1: mat.m2-define-typography-level(0.95rem, 1.5rem, 400),
+  $body-2: mat.m2-define-typography-level(0.875rem, 1.4rem, 400),
+  $button: mat.m2-define-typography-level(0.875rem, 1.2rem, 600),
+);
+
+$tm-theme: mat.m2-define-light-theme(
+  (
+    color: (
+      primary: $tm-primary,
+      accent: $tm-accent,
+      warn: $tm-warn,
+    ),
+    typography: $tm-typography,
+    density: 0,
+  )
+);
+
+@include mat.core();
+@include mat.all-component-themes($tm-theme);
+
+// Brand color tokens - change here to rebrand
+:root {
+  --tm-bg: #f7f8f8;
+  --tm-surface: #ffffff;
+  --tm-text: #1a1f24;
+  --tm-text-muted: #5f6b76;
+  --tm-border: #e4e8eb;
+  --tm-primary: #00796b;
+  --tm-primary-dark: #004c40;
+  --tm-primary-light: #4db6ac;
+  --tm-accent: #00c853;
+  --tm-whatsapp: #25d366;
+  --tm-whatsapp-dark: #1da851;
+  --tm-price: #d32f2f;
+  --tm-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --tm-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --tm-radius: 10px;
+  --tm-radius-sm: 6px;
+  --tm-container: 1200px;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--tm-bg);
+  color: var(--tm-text);
+  font-family: 'Inter', 'Roboto', 'Helvetica Neue', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+app-root {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--tm-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+// Layout helpers
+.tm-container {
+  width: 100%;
+  max-width: var(--tm-container);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.tm-section {
+  padding: 64px 0;
+}
+
+.tm-section-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--tm-text);
+}
+
+.tm-section-subtitle {
+  color: var(--tm-text-muted);
+  margin: 0 0 32px;
+  font-size: 1rem;
+}
+
+.tm-header__search-field {
+  width: 300px;
+}
+
+// WhatsApp button
+.tm-whatsapp-btn {
+  background-color: var(--tm-whatsapp) !important;
+  color: #fff !important;
+  font-weight: 600;
+  text-transform: none;
+  border-radius: var(--tm-radius-sm) !important;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.tm-whatsapp-btn:hover {
+  background-color: var(--tm-whatsapp-dark) !important;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.tm-primary-btn {
+  background-color: var(--tm-primary) !important;
+  color: #fff !important;
+  font-weight: 600;
+  text-transform: none;
+  border-radius: var(--tm-radius-sm) !important;
+}
+.tm-primary-btn:hover {
+  background-color: var(--tm-primary-dark) !important;
+}
+
+.tm-outline-btn {
+  border-color: var(--tm-primary) !important;
+  color: var(--tm-primary) !important;
+  text-transform: none;
+  border-radius: var(--tm-radius-sm) !important;
+}
+
+// Price
+.tm-price {
+  color: var(--tm-price);
+  font-weight: 700;
+  font-size: 1.15rem;
+}
+
+// Availability badges
+.tm-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.tm-badge--in-stock {
+  background: #e6f4ea;
+  color: #137333;
+}
+.tm-badge--low-stock {
+  background: #fef7e0;
+  color: #b06000;
+}
+.tm-badge--out-of-stock {
+  background: #fce8e6;
+  color: #c5221f;
+}
+.tm-badge--pre-order {
+  background: #e8f0fe;
+  color: #174ea6;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .tm-container {
+    width: 100%;
+    padding: 0 16px;
+  }
+  .tm-section {
+    padding: 40px 0;
+  }
+  .tm-section-title {
+    font-size: 1.4rem;
+  }
+  .tm-section-subtitle {
+    margin-bottom: 24px;
+  }
+}
+@media (max-width: 480px) {
+  .tm-section {
+    padding: 32px 0;
+  }
+  .tm-section-title {
+    font-size: 1.25rem;
+  }
+}
