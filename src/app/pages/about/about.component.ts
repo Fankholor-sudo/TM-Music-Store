@@ -11,7 +11,7 @@ import { WhatsAppService } from '../../services/whatsapp.service';
   template: `
     <section class="about-hero">
       <div class="tm-container">
-        <h1>About TM Music</h1>
+        <h1>About MusoHive</h1>
         <p>Your trusted source for quality music accessories at great prices.</p>
       </div>
     </section>
@@ -21,7 +21,7 @@ import { WhatsAppService } from '../../services/whatsapp.service';
         <div class="about-text">
           <h2>Our Story</h2>
           <p>
-            TM Music is an online store specialising in small music-related
+            MusoHive is an online store specialising in small music-related
             products and accessories. From in-ear monitors and audio cables to
             earphones, adapters, and connectors, we stock the gear that
             musicians, audio engineers, and music lovers rely on every day.

@@ -25,7 +25,7 @@ import { ProductCardComponent } from '../../components/product-card/product-card
     <section class="hero">
       <div class="hero__overlay"></div>
       <div class="tm-container hero__content">
-        <h1 class="hero__title">TM Music</h1>
+        <h1 class="hero__title">MusoHive</h1>
         <p class="hero__tagline">Quality Music Accessories at Great Prices</p>
         <p class="hero__desc">
           In-ear monitors, audio cables, earphones, adapters, connectors and
@@ -95,10 +95,10 @@ import { ProductCardComponent } from '../../components/product-card/product-card
       </div>
     </section>
 
-    <!-- Why TM Music -->
+    <!-- Why MusoHive -->
     <section class="tm-section why-section">
       <div class="tm-container">
-        <h2 class="tm-section-title">Why TM Music?</h2>
+        <h2 class="tm-section-title">Why MusoHive?</h2>
         <p class="tm-section-subtitle">We make ordering music gear simple</p>
         <div class="why-grid">
           <div class="why-card">

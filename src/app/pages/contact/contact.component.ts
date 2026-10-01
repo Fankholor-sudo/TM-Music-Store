@@ -13,7 +13,7 @@ import { WhatsAppService } from '../../services/whatsapp.service';
   template: `
     <section class="contact-hero">
       <div class="tm-container">
-        <h1>Contact TM Music</h1>
+        <h1>Contact MusoHive</h1>
         <p>We're here to help. Reach out and we'll get back to you on WhatsApp.</p>
       </div>
     </section>
