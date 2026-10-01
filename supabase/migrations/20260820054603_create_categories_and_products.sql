@@ -1,5 +1,5 @@
 /*
-# Create categories and products tables for TM Music store
+# Create categories and products tables for MusoHive store
 
 1. New Tables
 - `categories`: product groupings (In-Ear Monitors, Audio Cables, etc.)

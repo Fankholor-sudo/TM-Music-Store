@@ -41,7 +41,11 @@ import { WhatsAppService } from './services/whatsapp.service';
         position="end"
       >
         <div class="mobile-nav__header">
-          <span class="mobile-nav__title">TM Music</span>
+          <img
+            src="/images/logo/logo-black.png"
+            alt="MusoHive"
+            class="tm-header_logo-img"
+          />
           <button mat-icon-button (click)="drawer.close()">
             <mat-icon>close</mat-icon>
           </button>
@@ -117,8 +121,11 @@ import { WhatsAppService } from './services/whatsapp.service';
             <div class="tm-container tm-header__inner">
               <div class="tm-header__brand">
                 <a routerLink="/">
-                  <span class="tm-header__logo">TM</span>
-                  <span class="tm-header__name">TM Music</span>
+                  <img
+                    src="/images/logo/logo-black.png"
+                    alt="MusoHive"
+                    class="tm-header_logo-img"
+                  />
                 </a>
               </div>
 
@@ -205,7 +212,11 @@ import { WhatsAppService } from './services/whatsapp.service';
           <div class="tm-container tm-footer__inner">
             <div class="tm-footer__col tm-footer__brand">
               <div class="tm-footer__logo">
-                <span class="tm-header__logo">TM</span> TM Music
+                <img
+                  src="/images/logo/logo-light.png"
+                  alt="MusoHive"
+                  class="tm-header_logo-img"
+                />
               </div>
               <p class="tm-footer__tagline">
                 Quality music accessories at great prices. In-ear monitors,
@@ -239,7 +250,7 @@ import { WhatsAppService } from './services/whatsapp.service';
           </div>
           <div class="tm-footer__bar">
             <div class="tm-container">
-              &copy; {{ year }} TM Music. All rights reserved.
+              &copy; {{ year }} MusoHive. All rights reserved.
             </div>
           </div>
         </footer>
@@ -279,23 +290,12 @@ import { WhatsAppService } from './services/whatsapp.service';
       .tm-header__brand {
         min-width: 0;
       }
-      .tm-header__logo {
-        background: var(--tm-primary);
-        color: #fff;
-        font-weight: 700;
-        font-size: 0.9rem;
-        width: 34px;
-        height: 34px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 8px;
-        letter-spacing: 0.02em;
-      }
-      .tm-header__name {
-        font-weight: 700;
-        font-size: 1.2rem;
-        color: var(--tm-text);
+      .tm-header_logo-img {
+        display: block;
+        width: 120px;
+        height: auto;
+        max-height: none;
+        object-fit: contain;
       }
       .tm-header__nav {
         display: flex;
@@ -533,8 +533,9 @@ import { WhatsAppService } from './services/whatsapp.service';
           grid-template-columns: 1fr;
           gap: 28px;
         }
-        .tm-header__name {
-          display: none;
+        .tm-header_logo-img {
+          width: 90px;
+          max-height: auto;
         }
       }
       @media (max-width: 400px) {
