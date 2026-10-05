@@ -84,15 +84,6 @@ import { WhatsAppService } from '../../services/whatsapp.service';
               </div>
             </li>
           </ol>
-          <a
-            mat-flat-button
-            class="tm-whatsapp-btn full-width"
-            [href]="whatsapp.contactUrl()"
-            target="_blank"
-            rel="noopener"
-          >
-            <mat-icon>chat</mat-icon> Start a Conversation
-          </a>
         </div>
       </div>
     </section>
