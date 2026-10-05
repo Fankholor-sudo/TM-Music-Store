@@ -2,9 +2,9 @@ require('dotenv').config();
 const fs = require('node:fs');
 
 const config = {
-  supabaseUrl: process.env.VITE_SUPABASE_URL,
-  supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY,
-  whatsappNumber: process.env.VITE_WHATSAPPNUMBER,
+  supabaseUrl: process.env.SUPABASE_URL,
+  supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+  whatsappNumber: process.env.WHATSAPPNUMBER,
 };
 
 for (const [name, value] of Object.entries(config)) {
