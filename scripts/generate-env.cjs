@@ -14,5 +14,6 @@ for (const [name, value] of Object.entries(config)) {
 fs.mkdirSync('src/environments', { recursive: true });
 fs.writeFileSync(
   'src/environments/env.generated.ts',
-  `⁠export const env = ${JSON.stringify(config, null, 2)};\n`
+  `export const env = ${JSON.stringify(config, null, 2)};\n`,
+  'utf8'
 );
