@@ -180,17 +180,6 @@ import { WhatsAppService } from './services/whatsapp.service';
                   </mat-form-field>
                 </form>
 
-                <a
-                  mat-flat-button
-                  class="tm-whatsapp-btn tm-header__wa"
-                  [href]="whatsapp.contactUrl()"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  <mat-icon>chat</mat-icon>
-                  <span class="tm-header__wa-label">WhatsApp</span>
-                </a>
-
                 <button
                   mat-icon-button
                   class="tm-header__menu-btn"
@@ -375,9 +364,6 @@ import { WhatsAppService } from './services/whatsapp.service';
       .search-icon {
         color: var(--tm-text-muted);
       }
-      .tm-header__wa {
-        height: 40px;
-      }
       .tm-header__menu-btn {
         display: none;
       }
@@ -495,9 +481,6 @@ import { WhatsAppService } from './services/whatsapp.service';
 
       /* Responsive */
       @media (max-width: 1024px) {
-        .tm-header__nav {
-          display: none;
-        }
         .tm-header__search-field {
           width: 160px;
         }
@@ -510,19 +493,15 @@ import { WhatsAppService } from './services/whatsapp.service';
           grid-column: 1 / -1;
         }
       }
-      @media (max-width: 720px) {
+      @media (max-width: 780px) {
         .tm-header__search {
           display: none;
         }
-        .tm-header__wa-label {
+        .tm-header__nav {
           display: none;
         }
         .tm-header__menu-btn {
           display: inline-flex;
-        }
-        .tm-header__wa {
-          min-width: 0;
-          padding: 0 12px;
         }
         .tm-header__inner {
           gap: 8px;
@@ -539,9 +518,6 @@ import { WhatsAppService } from './services/whatsapp.service';
         }
       }
       @media (max-width: 400px) {
-        .tm-header__wa {
-          display: none;
-        }
         .tm-header__brand a {
           gap: 6px;
         }

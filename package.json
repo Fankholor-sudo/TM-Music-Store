@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build"
+    "build": "node scripts/generate-env.cjs && ng build"
   },
   "dependencies": {
     "@angular/animations": "21.1.0",
@@ -25,6 +25,7 @@
     "@angular/cli": "21.1.0",
     "@angular/compiler-cli": "21.1.0",
     "@types/node": "^26.2.0",
+    "dotenv": "^18.0.5",
     "typescript": "^5.9.3"
   }
 }
