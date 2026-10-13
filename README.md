@@ -8,7 +8,7 @@ MusoHive is a web-based e-commerce application designed to provide customers wit
 
 The application is built with Angular and Angular Material, with Supabase providing backend services.
 
-## [**Preview Live Demo**](https://tm-music-store.vercel.app/)
+## [Preview Live Demo](https://tm-music-store.vercel.app/)
 <img width="1512" height="828" alt="Screenshot 2026-10-13 at 11 31 25" src="https://github.com/user-attachments/assets/0ec8f45c-a158-44b6-a8d1-c4c9bf83052f" />
 
 ## Features
