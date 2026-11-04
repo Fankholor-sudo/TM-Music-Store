@@ -35,15 +35,6 @@ import { ProductCardComponent } from '../../components/product-card/product-card
           <a mat-flat-button class="tm-primary-btn" routerLink="/shop">
             <mat-icon>storefront</mat-icon> Shop Now
           </a>
-          <a
-            mat-flat-button
-            class="tm-whatsapp-btn"
-            [href]="whatsapp.contactUrl()"
-            target="_blank"
-            rel="noopener"
-          >
-            <mat-icon>chat</mat-icon> Contact Us on WhatsApp
-          </a>
         </div>
       </div>
     </section>
@@ -141,6 +132,9 @@ import { ProductCardComponent } from '../../components/product-card/product-card
         position: relative;
         z-index: 1;
         max-width: 620px;
+        margin-left: 150px;
+        margin-right: auto;
+        text-align: left;
       }
       .hero__title {
         font-size: 3rem;
@@ -299,6 +293,9 @@ import { ProductCardComponent } from '../../components/product-card/product-card
         .hero__desc {
           font-size: 0.92rem;
         }
+        .hero__content {
+          margin-left: 0;
+        }
         .cats-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 16px;
@@ -334,6 +331,9 @@ import { ProductCardComponent } from '../../components/product-card/product-card
         .hero__actions a {
           width: 100%;
           justify-content: center;
+        }
+        .hero__content {
+          margin-left: 0;
         }
         .cats-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
