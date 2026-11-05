@@ -1,14 +1,16 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
+import { Meta, Title } from '@angular/platform-browser';
 
 import { ProductService } from '../../services/product.service';
 import { WhatsAppService } from '../../services/whatsapp.service';
 import { Product } from '../../models/product.model';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
+
 
 @Component({
   selector: 'app-product-detail',
@@ -50,7 +52,7 @@ import { ProductCardComponent } from '../../components/product-card/product-card
                   <button
                     class="thumb"
                     [class.active]="img === activeImage()"
-                    (click)="activeImage.set(img)"
+                    (click)="selectImage(img, $index)"
                   >
                     <img [src]="img" [alt]="p.name" />
                   </button>
@@ -76,7 +78,7 @@ import { ProductCardComponent } from '../../components/product-card/product-card
               <a
                 mat-flat-button
                 class="tm-whatsapp-btn detail-order-btn"
-                [href]="whatsapp.orderUrl(p)"
+                [href]="whatsapp.orderUrl(p, activeImageIndex(), activeImage())"
                 target="_blank"
                 rel="noopener"
               >
@@ -177,7 +179,7 @@ import { ProductCardComponent } from '../../components/product-card/product-card
       .main-img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
       }
       .main-img-wrap .tm-badge {
         position: absolute;
@@ -207,7 +209,7 @@ import { ProductCardComponent } from '../../components/product-card/product-card
       .thumb img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
       }
       .detail-brand {
         font-size: 0.8rem;
@@ -375,12 +377,19 @@ import { ProductCardComponent } from '../../components/product-card/product-card
 })
 export class ProductDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private productsService = inject(ProductService);
+
+  private meta = inject(Meta);
+  private title = inject(Title);
+  private document = inject(DOCUMENT);
+
   whatsapp = inject(WhatsAppService);
 
   product = signal<Product | null>(null);
   related = signal<Product[]>([]);
   activeImage = signal<string>('');
+  activeImageIndex = signal(0);
   loading = signal(true);
 
   ngOnInit(): void {
@@ -390,16 +399,52 @@ export class ProductDetailComponent implements OnInit {
         this.loading.set(false);
         return;
       }
+      const imgParam = this.route.snapshot.queryParamMap.get('img');
+      const imgIndex = imgParam ? Math.max(0, parseInt(imgParam, 10) || 0) : 0;
       this.loading.set(true);
       this.productsService.getProductBySlug(slug).subscribe((p) => {
         this.product.set(p);
-        this.activeImage.set(p?.image_url ?? '');
+        const images = p ? this.allImages(p) : [];
+        const clampedIndex = Math.min(imgIndex, images.length - 1);
+        this.activeImageIndex.set(clampedIndex);
+        this.activeImage.set(images[clampedIndex] ?? p?.image_url ?? '');
+
+        if (p) { this.updateProductMetadata(p); }
+        
         this.loading.set(false);
+        
         if (p) {
           this.loadRelated(p);
         }
       });
     });
+  }
+
+  private updateProductMetadata(p: Product): void {
+    const imageUrl = p.image_url;
+    const productUrl = `${this.document.location.origin}/products/${p.slug}`;
+    const title = `${p.name} | TM Music`;
+    const description = p.description || `Shop ${p.name} from TM Music.`;
+
+    this.title.setTitle(title);
+    this.meta.updateTag({ name: 'description', content: description });
+    this.meta.updateTag({ property: 'og:title', content: title });
+    this.meta.updateTag({ property: 'og:description', content: description });
+    this.meta.updateTag({ property: 'og:image', content: imageUrl });
+    this.meta.updateTag({ property: 'og:url', content: productUrl });
+    this.meta.updateTag({ name: 'twitter:title', content: title });
+    this.meta.updateTag({ name: 'twitter:description', content: description });
+    this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
+
+    let favicon = this.document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+
+    if (!favicon) {
+      favicon = this.document.createElement('link');
+      favicon.rel = 'icon';
+      this.document.head.appendChild(favicon);
+    }
+
+    favicon.href = imageUrl;
   }
 
   private loadRelated(p: Product): void {
@@ -412,6 +457,18 @@ export class ProductDetailComponent implements OnInit {
 
   allImages(p: Product): string[] {
     return [p.image_url, ...p.additional_images];
+  }
+
+  selectImage(img: string, index: number): void {
+    this.activeImage.set(img);
+    this.activeImageIndex.set(index);
+    const url = this.router.url.split('?')[0];
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: index > 0 ? { img: index } : null,
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   hasSpecs(p: Product): boolean {

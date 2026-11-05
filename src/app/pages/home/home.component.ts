@@ -188,12 +188,12 @@ import { ProductCardComponent } from '../../components/product-card/product-card
       .cat-card__img-wrap {
         aspect-ratio: 16 / 10;
         overflow: hidden;
-        background: var(--tm-bg);
+        background: #255046;
       }
       .cat-card__img-wrap img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         transition: transform 0.3s ease;
       }
       .cat-card:hover .cat-card__img-wrap img {

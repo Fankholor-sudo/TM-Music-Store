@@ -80,7 +80,7 @@ import { WhatsAppService } from '../../services/whatsapp.service';
       .card__img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         transition: transform 0.3s ease;
       }
       .card:hover .card__img {
