@@ -13,8 +13,7 @@ export class WhatsAppService {
       this.document.location?.origin || 'https://www.musohive.co.za'
     ).toString();
 
-    return imgIndex != null && imgIndex > 0 ? `${base}?img=${imgIndex}`
-      : base;
+    return imgIndex != null && imgIndex > 0 ? `${base}?img=${imgIndex}&` : base;
   }
 
   buildOrderMessage(product: Product, imgIndex?: number): string {
