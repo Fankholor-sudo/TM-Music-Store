@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "buildCommand": "yarn build",
+  "outputDirectory": "dist/demo/browser",
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "dist/demo/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ]
+}
