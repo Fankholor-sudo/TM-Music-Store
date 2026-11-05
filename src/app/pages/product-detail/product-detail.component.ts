@@ -1,10 +1,11 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, PendingTasks } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { Meta, Title } from '@angular/platform-browser';
+import { firstValueFrom } from 'rxjs';
 
 import { ProductService } from '../../services/product.service';
 import { WhatsAppService } from '../../services/whatsapp.service';
@@ -78,7 +79,7 @@ import { ProductCardComponent } from '../../components/product-card/product-card
               <a
                 mat-flat-button
                 class="tm-whatsapp-btn detail-order-btn"
-                [href]="whatsapp.orderUrl(p, activeImageIndex(), activeImage())"
+                [href]="whatsapp.orderUrl(p, activeImageIndex())"
                 target="_blank"
                 rel="noopener"
               >
@@ -379,7 +380,7 @@ export class ProductDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private productsService = inject(ProductService);
-
+  private pendingTasks = inject(PendingTasks);
   private meta = inject(Meta);
   private title = inject(Title);
   private document = inject(DOCUMENT);
@@ -402,49 +403,68 @@ export class ProductDetailComponent implements OnInit {
       const imgParam = this.route.snapshot.queryParamMap.get('img');
       const imgIndex = imgParam ? Math.max(0, parseInt(imgParam, 10) || 0) : 0;
       this.loading.set(true);
-      this.productsService.getProductBySlug(slug).subscribe((p) => {
-        this.product.set(p);
-        const images = p ? this.allImages(p) : [];
-        const clampedIndex = Math.min(imgIndex, images.length - 1);
-        this.activeImageIndex.set(clampedIndex);
-        this.activeImage.set(images[clampedIndex] ?? p?.image_url ?? '');
 
-        if (p) { this.updateProductMetadata(p); }
-        
-        this.loading.set(false);
-        
-        if (p) {
-          this.loadRelated(p);
+      this.pendingTasks.run(async () => {
+        try {
+          const p = await firstValueFrom(
+            this.productsService.getProductBySlug(slug)
+          );
+
+          this.product.set(p);
+
+          const images = p ? this.allImages(p) : [];
+          const clampedIndex = Math.min(imgIndex, images.length - 1);
+
+          this.activeImageIndex.set(clampedIndex);
+          this.activeImage.set(
+            images[clampedIndex] ?? p?.image_url ?? ''
+          );
+
+          if (p) {
+            this.updateProductMetadata(p);
+            this.loadRelated(p);
+          }
+        } catch (error) {
+          console.error('Failed to load product:', error);
+          this.product.set(null);
+        } finally {
+          this.loading.set(false);
         }
       });
     });
   }
 
   private updateProductMetadata(p: Product): void {
+    const siteUrl = 'https://www.musohive.co.za';
+    const productUrl = `${siteUrl}/products/${p.slug}`;
     const imageUrl = p.image_url;
-    const productUrl = `${this.document.location.origin}/products/${p.slug}`;
-    const title = `${p.name} | TM Music`;
-    const description = p.description || `Shop ${p.name} from TM Music.`;
+    const title = `${p.name} | MusoHive`;
+    const description = (p.description || `Shop ${p.name} from MusoHive.`).slice(0, 300);
 
     this.title.setTitle(title);
     this.meta.updateTag({ name: 'description', content: description });
+    this.meta.updateTag({ property: 'og:type', content: 'product' });
+    this.meta.updateTag({ property: 'og:site_name', content: 'MusoHive' });
     this.meta.updateTag({ property: 'og:title', content: title });
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:image', content: imageUrl });
     this.meta.updateTag({ property: 'og:url', content: productUrl });
+    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
     this.meta.updateTag({ name: 'twitter:title', content: title });
     this.meta.updateTag({ name: 'twitter:description', content: description });
     this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
 
-    let favicon = this.document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    let canonical = this.document.querySelector<HTMLLinkElement>(
+      'link[rel="canonical"]'
+    );
 
-    if (!favicon) {
-      favicon = this.document.createElement('link');
-      favicon.rel = 'icon';
-      this.document.head.appendChild(favicon);
+    if (!canonical) {
+      canonical = this.document.createElement('link');
+      canonical.rel = 'canonical';
+      this.document.head.appendChild(canonical);
     }
 
-    favicon.href = imageUrl;
+    canonical.href = productUrl;
   }
 
   private loadRelated(p: Product): void {
