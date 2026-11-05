@@ -1,6 +1,7 @@
 {
   "name": "angular-starter",
   "private": true,
+  "type": "module",
   "scripts": {
     "ng": "ng",
     "start": "node scripts/generate-env.cjs && ng serve",
