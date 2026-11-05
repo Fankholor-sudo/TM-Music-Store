@@ -436,8 +436,15 @@ export class ProductDetailComponent implements OnInit {
 
   private updateProductMetadata(p: Product): void {
     const siteUrl = 'https://www.musohive.co.za';
-    const productUrl = `${siteUrl}/products/${p.slug}`;
-    const imageUrl = p.image_url;
+
+    const imgParam = this.route.snapshot.queryParamMap.get('img');
+    const imgIndex = imgParam ? Math.max(0, parseInt(imgParam, 10) || 0) : 0;
+
+    const images = this.allImages(p);
+    const clampedIndex = Math.min(imgIndex, Math.max(images.length - 1, 0));
+    const imageUrl = images[clampedIndex] || p.image_url;
+    const productUrl = `${siteUrl}/products/${p.slug}${ clampedIndex > 0 ? `?img=${clampedIndex}` : '' }`;
+
     const title = `${p.name} | MusoHive`;
     const description = (p.description || `Shop ${p.name} from MusoHive.`).slice(0, 300);
 
@@ -464,7 +471,7 @@ export class ProductDetailComponent implements OnInit {
       this.document.head.appendChild(canonical);
     }
 
-    canonical.href = productUrl;
+    canonical.href = `${siteUrl}/products/${p.slug}`;
   }
 
   private loadRelated(p: Product): void {
@@ -482,7 +489,10 @@ export class ProductDetailComponent implements OnInit {
   selectImage(img: string, index: number): void {
     this.activeImage.set(img);
     this.activeImageIndex.set(index);
-    const url = this.router.url.split('?')[0];
+    
+    const p = this.product();
+    if (p) { this.updateProductMetadata(p); }
+
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: index > 0 ? { img: index } : null,
