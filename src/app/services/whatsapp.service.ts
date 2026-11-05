@@ -6,21 +6,24 @@ import { Product } from '../models/product.model';
 export class WhatsAppService {
   private number = environment.whatsappNumber;
 
-  buildProductUrl(product: Product): string {
-    return `${window.location.origin}/products/${product.slug}`;
+  buildProductUrl(product: Product, imgIndex?: number): string {
+    const base = `${window.location.origin}/products/${product.slug}`;
+    return imgIndex != null && imgIndex > 0 ? `${base}?img=${imgIndex}` : base;
   }
 
-  buildOrderMessage(product: Product): string {
+  buildOrderMessage(product: Product, imgIndex?: number, imageUrl?: string): string {
     const lines = [
       `Hello ${environment.storeName}, I am interested in ordering:`,
       '',
       `Product: ${product.name}`,
       `Brand: ${product.brand}`,
       `Price: R${product.price.toFixed(2)}`,
-      `Link: ${this.buildProductUrl(product)}`,
-      '',
-      'Please let me know if this product is available.',
+      `Link: ${this.buildProductUrl(product, imgIndex)}`,
     ];
+    if (imageUrl) {
+      lines.push(`Image: ${imageUrl}`);
+    }
+    lines.push('', 'Please let me know if this product is available.');
     return encodeURIComponent(lines.join('\n'));
   }
 
@@ -30,8 +33,8 @@ export class WhatsAppService {
     );
   }
 
-  orderUrl(product: Product): string {
-    return `https://wa.me/${this.number}?text=${this.buildOrderMessage(product)}`;
+  orderUrl(product: Product, imgIndex?: number, imageUrl?: string): string {
+    return `https://wa.me/${this.number}?text=${this.buildOrderMessage(product, imgIndex, imageUrl)}`;
   }
 
   contactUrl(text = ''): string {
