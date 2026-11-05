@@ -1,29 +1,32 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, DOCUMENT } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { Product } from '../models/product.model';
 
 @Injectable({ providedIn: 'root' })
 export class WhatsAppService {
   private number = environment.whatsappNumber;
+  private document = inject(DOCUMENT);
 
   buildProductUrl(product: Product, imgIndex?: number): string {
-    const base = `${window.location.origin}/products/${product.slug}`;
-    return imgIndex != null && imgIndex > 0 ? `${base}?img=${imgIndex}` : base;
+    const base = new URL(
+      `/products/${product.slug}`,
+      this.document.location?.origin || 'https://www.musohive.co.za'
+    ).toString();
+
+    return imgIndex != null && imgIndex > 0 ? `${base}?img=${imgIndex}`
+      : base;
   }
 
-  buildOrderMessage(product: Product, imgIndex?: number, imageUrl?: string): string {
+  buildOrderMessage(product: Product, imgIndex?: number): string {
     const lines = [
       `Hello ${environment.storeName}, I am interested in ordering:`,
       '',
       `Product: ${product.name}`,
-      `Brand: ${product.brand}`,
-      `Price: R${product.price.toFixed(2)}`,
       `Link: ${this.buildProductUrl(product, imgIndex)}`,
+      '',
+      'Please let me know if this product is available.',
     ];
-    if (imageUrl) {
-      lines.push(`Image: ${imageUrl}`);
-    }
-    lines.push('', 'Please let me know if this product is available.');
+
     return encodeURIComponent(lines.join('\n'));
   }
 
@@ -33,8 +36,8 @@ export class WhatsAppService {
     );
   }
 
-  orderUrl(product: Product, imgIndex?: number, imageUrl?: string): string {
-    return `https://wa.me/${this.number}?text=${this.buildOrderMessage(product, imgIndex, imageUrl)}`;
+  orderUrl(product: Product, imgIndex?: number): string {
+    return `https://wa.me/${this.number}?text=${this.buildOrderMessage(product, imgIndex)}`;
   }
 
   contactUrl(text = ''): string {
