@@ -29,4 +29,47 @@
     <priority>0.5</priority>
   </url>
 
+  <!-- Products -->
+  <url>
+    <loc>https://www.musohive.co.za/products/cca-c12-iem</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.musohive.co.za/products/kz-as-16-pro-8ba</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.musohive.co.za/products/kz-as16-pro-x</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.musohive.co.za/products/kz-edx-pro</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.musohive.co.za/products/kz-zs10-pro</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.musohive.co.za/products/kz-zsn-pro</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.musohive.co.za/products/zn-zsn-pro-2</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
 </urlset>
