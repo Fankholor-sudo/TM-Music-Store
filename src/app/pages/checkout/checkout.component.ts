@@ -21,7 +21,7 @@ import { FormsModule } from '@angular/forms';
 
 import { CartService } from '@/app/services/cart.service';
 import { PaystackService } from '@/app/services/paystack.service';
-import { OrderService, CheckoutPayload } from '@/app/services/order.service';
+import { CreateOrderPayload, OrderService } from '@/app/services/order.service';
 
 interface PepStore {
   name: string;
@@ -777,47 +777,13 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.errorMessage.set('Please select a Pep-Store location for collection.');
       return;
     }
-    if (this.shippingMethod === 'door_delivery') {
-      if (!this.deliveryAddress || !this.deliveryCity || !this.deliveryPostalCode) {
-        this.errorMessage.set('Please fill in all delivery address fields.');
-        return;
-      }
+    if (this.shippingMethod === 'door_delivery' && (!this.deliveryAddress || !this.deliveryCity || !this.deliveryPostalCode)) {
+      this.errorMessage.set('Please fill in all delivery address fields.');
+      return;
     }
 
-    const reference = this.paystack.generateReference();
     this.processing.set(true);
-
-    try {
-      await this.paystack.pay({
-        email: this.email,
-        amount: this.total(),
-        reference,
-        firstName: this.firstName,
-        lastName: this.lastName,
-        phone: this.phone,
-        callbacks: {
-          onSuccess: async (paystackRef: string) => {
-            await this.processOrder(reference, paystackRef);
-          },
-          onClose: () => {
-            this.processing.set(false);
-            this.errorMessage.set(
-              'Payment window was closed. Your order was not completed.',
-            );
-          },
-        },
-      });
-    } catch (err) {
-      this.processing.set(false);
-      this.errorMessage.set(
-        err instanceof Error ? err.message : 'Payment failed. Please try again.',
-      );
-    }
-  }
-
-  private async processOrder(reference: string, paystackRef: string): Promise<void> {
-    const payload: CheckoutPayload = {
-      reference,
+    const payload: CreateOrderPayload = {
       first_name: this.firstName,
       last_name: this.lastName,
       email: this.email,
@@ -827,41 +793,40 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       delivery_address: this.shippingMethod === 'door_delivery' ? this.deliveryAddress : null,
       delivery_city: this.shippingMethod === 'door_delivery' ? this.deliveryCity : null,
       delivery_postal_code: this.shippingMethod === 'door_delivery' ? this.deliveryPostalCode : null,
-      delivery_latitude: this.mapLat(),
-      delivery_longitude: this.mapLng(),
-      subtotal: this.cart.subtotal(),
-      shipping_cost: this.shippingCost(),
-      total: this.total(),
-      items: this.cart.cartItems().map((item) => ({
-        ...item,
-        product_name: item.name,
-        product_image: item.image_url,
-        unit_price: item.price,
-        line_total: item.price * item.quantity,
-      })),
+      delivery_latitude: this.shippingMethod === 'door_delivery' ? this.mapLat() : null,
+      delivery_longitude: this.shippingMethod === 'door_delivery' ? this.mapLng() : null,
+      items: this.cart.cartItems().map((item) => ({ product_id: item.product_id, quantity: item.quantity })),
     };
 
-    try {
-      const result = await this.orders.verifyAndSaveOrder(payload);
+    const result = await this.orders.createOrder(payload);
+    if (!result.success || !result.access_code || !result.reference) {
       this.processing.set(false);
+      this.errorMessage.set(result.error || 'Could not start payment. Please try again.');
+      return;
+    }
 
-      if (result.success) {
-        this.cart.clearCart();
-        this.orderSuccess.set(true);
-        this.successEmail.set(this.email);
-        this.successReference.set(reference);
-      } else {
-        this.errorMessage.set(
-          result.error || 'Order could not be saved. Please contact support.',
-        );
-      }
-    } catch (err) {
+    try {
+      await this.paystack.resumeTransaction(result.access_code, {
+        onSuccess: async (reference: string) => {
+          const verification = await this.orders.verifyPayment(reference);
+          this.processing.set(false);
+          if (verification.success) {
+            this.cart.clearCart();
+            this.orderSuccess.set(true);
+            this.successEmail.set(this.email);
+            this.successReference.set(result.reference ?? reference);
+          } else {
+            this.errorMessage.set(verification.error || 'Payment could not be verified yet.');
+          }
+        },
+        onClose: () => {
+          this.processing.set(false);
+          this.errorMessage.set('Payment was not completed. You can try again later.');
+        },
+      });
+    } catch {
       this.processing.set(false);
-      this.errorMessage.set(
-        err instanceof Error
-          ? err.message
-          : 'Something went wrong saving your order. Please contact support.',
-      );
+      this.errorMessage.set('Could not open the payment window. Please try again.');
     }
   }
 }

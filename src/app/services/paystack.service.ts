@@ -1,5 +1,5 @@
 import { Injectable, inject, DOCUMENT } from '@angular/core';
-import { environment } from '@/environments/environment';
+import { environment } from '../../environments/environment';
 
 export interface PaystackCallbacks {
   onSuccess: (reference: string) => void;
@@ -12,6 +12,7 @@ interface PaystackHandler {
 
 interface PaystackInline {
   setup: (config: Record<string, unknown>) => PaystackHandler;
+  resumeTransaction: (accessCode: string, callbacks: Record<string, unknown>) => void;
 }
 
 declare global {
@@ -52,6 +53,20 @@ export class PaystackService {
       script.onerror = () =>
         reject(new Error('Failed to load Paystack payment script.'));
       this.document.head.appendChild(script);
+    });
+  }
+
+  async resumeTransaction(
+    accessCode: string,
+    callbacks: PaystackCallbacks,
+  ): Promise<void> {
+    await this.loadScript();
+    if (!this.window.PaystackPop) {
+      throw new Error('Paystack payment library not available.');
+    }
+    this.window.PaystackPop.resumeTransaction(accessCode, {
+      callback: (response: { reference: string }) => callbacks.onSuccess(response.reference),
+      onClose: callbacks.onClose,
     });
   }
 
