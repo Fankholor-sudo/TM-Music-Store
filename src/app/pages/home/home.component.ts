@@ -4,10 +4,10 @@ import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { ProductService } from '../../services/product.service';
-import { WhatsAppService } from '../../services/whatsapp.service';
-import { Category, Product } from '../../models/product.model';
-import { ProductCardComponent } from '../../components/product-card/product-card.component';
+import { ProductService } from '@/app/services/product.service';
+import { WhatsAppService } from '@/app/services/whatsapp.service';
+import { Category, Product } from '@/app/models/product.model';
+import { ProductCardComponent } from '@/app/components/product-card/product-card.component';
 
 @Component({
   selector: 'app-home',
