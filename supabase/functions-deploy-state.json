@@ -1,9 +1,21 @@
 {
   "projectId": "72859773",
   "functions": {
+    "create-order": {
+      "hasChanged": false,
+      "hash": "04eab27295c34b91031a9e0820c8519f6b5e5c9bd38c66c7dd9645e42844e4c6"
+    },
+    "paystack-webhook": {
+      "hasChanged": false,
+      "hash": "5764105aee89bf8ed132a98110ee1271f0dcab847fb5074affbee916e4838b5a"
+    },
     "verify-order": {
       "hasChanged": false,
-      "hash": "49393e9274f3b837176bf23ccdd9ded248b112647419458131bc00ae841b5234"
+      "hash": "f9e820d9ecbf1393270e755a4109c879673faccee1625d173c39e5908833bd55"
+    },
+    "verify-payment": {
+      "hasChanged": false,
+      "hash": "8439329ae2983560440e366d252ea7953ea6ddfe9fd21d326045ef720726dcc7"
     }
   }
 }
