@@ -94,6 +94,11 @@ The application is deployed through Vercel. To deploy your own version, connect 
 * Build a responsive and user-friendly interface.
 * Gain practical experience in application development and deployment.
 
+### Devwlopment Live Push
+   ```bash
+   npx supabase functions deploy name-of-function
+   ```
+
 ## Author
 
 **Fankholor**

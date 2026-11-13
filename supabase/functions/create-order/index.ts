@@ -335,8 +335,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    console.error("create-order error", error);
-
     return json(
       { success: false, error: "Could not start checkout" },
       500,
