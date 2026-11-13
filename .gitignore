@@ -1,6 +1,8 @@
 .angular
 dist
 node_modules
+
 .env
 .env.*
+env.generated.ts
 !.env.example
