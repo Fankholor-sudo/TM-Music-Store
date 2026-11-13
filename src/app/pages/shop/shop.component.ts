@@ -7,9 +7,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
-import { ProductService } from '../../services/product.service';
-import { Category, Product, SortOption } from '../../models/product.model';
-import { ProductCardComponent } from '../../components/product-card/product-card.component';
+import { ProductService } from '@/app/services/product.service';
+import { Category, Product, SortOption } from '@/app/models/product.model';
+import { ProductCardComponent } from '@/app/components/product-card/product-card.component';
 
 @Component({
   selector: 'app-shop',

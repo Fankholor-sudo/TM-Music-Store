@@ -4,8 +4,9 @@ import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { Product } from '../../models/product.model';
-import { WhatsAppService } from '../../services/whatsapp.service';
+import { Product } from '@/app/models/product.model';
+import { WhatsAppService } from '@/app/services/whatsapp.service';
+import { CartService } from '@/app/services/cart.service';
 
 @Component({
   selector: 'app-product-card',
@@ -40,16 +41,14 @@ import { WhatsAppService } from '../../services/whatsapp.service';
             [routerLink]="['/products', product.slug]"
             >View Product</a
           >
-          <a
+          <button
             mat-flat-button
-            class="tm-whatsapp-btn"
-            [href]="whatsapp.orderUrl(product)"
-            target="_blank"
-            rel="noopener"
+            class="tm-primary-btn"
+            (click)="addToCart()"
           >
-            <mat-icon>chat</mat-icon>
-            Order
-          </a>
+            <mat-icon>add_shopping_cart</mat-icon>
+            Add to Cart
+          </button>
         </div>
       </div>
     </article>
@@ -139,16 +138,19 @@ import { WhatsAppService } from '../../services/whatsapp.service';
         gap: 8px;
         margin-top: auto;
       }
-      .card__actions a {
+      .card__actions a,
+      .card__actions button {
         width: 100%;
         white-space: nowrap;
+        text-decoration: none;
       }
 
       @media (min-width: 480px) {
         .card__actions {
           flex-direction: row;
         }
-        .card__actions a {
+        .card__actions a,
+        .card__actions button {
           flex: 1;
         }
       }
@@ -158,6 +160,11 @@ import { WhatsAppService } from '../../services/whatsapp.service';
 export class ProductCardComponent {
   @Input({ required: true }) product!: Product;
   whatsapp = inject(WhatsAppService);
+  private cartService = inject(CartService);
+
+  addToCart(): void {
+    this.cartService.addToCart(this.product, 1);
+  }
 
   badgeClass(availability: string): string {
     switch (availability) {
