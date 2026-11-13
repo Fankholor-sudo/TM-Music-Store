@@ -5,8 +5,9 @@ import {
   computed,
   OnInit,
   OnDestroy,
+  PLATFORM_ID
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -67,7 +68,8 @@ interface PepStore {
             <strong>{{ successEmail() }}</strong>.
           </p>
           <div class="success-order-ref">
-            Order Reference: <strong>{{ successReference() }}</strong>
+            <b>Order Reference:</b>
+            <strong>{{ successReference() }}</strong>
           </div>
           <a mat-flat-button class="tm-primary-btn" routerLink="/shop">
             Continue Shopping
@@ -405,14 +407,20 @@ interface PepStore {
         margin-left: auto;
         margin-right: auto;
       }
+      .checkout-success a {
+        height: 50px;
+        text-decoration: none;
+      }
       .success-order-ref {
+        gap: 16px;
+        padding: 16px;
+        margin: 0 14px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.95rem;
         background: var(--tm-surface);
         border: 1px solid var(--tm-border);
         border-radius: var(--tm-radius);
-        padding: 16px 24px;
-        margin-bottom: 24px;
-        display: inline-block;
-        font-size: 0.95rem;
       }
       .success-order-ref strong {
         color: var(--tm-primary);
@@ -691,6 +699,12 @@ interface PepStore {
         .checkout-section {
           padding: 16px;
         }
+        .success-order-ref {
+          width: 100%;
+          gap: 14px;
+          margin: 14px 0;
+          flex-direction: column;
+        }
       }
     `,
   ],
@@ -700,6 +714,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   private paystack = inject(PaystackService);
   private orders = inject(OrderService);
   private router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
 
   firstName = '';
   lastName = '';
@@ -741,6 +756,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     return `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.02},${lat - 0.02},${lng + 0.02},${lat + 0.02}&layer=mapnik&marker=${lat},${lng}`;
   });
 
+  private get isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
+  }
+
   private messageListener = (event: MessageEvent) => {
     if (event.data?.type === 'map-location' && event.data.lat && event.data.lng) {
       this.mapLat.set(event.data.lat);
@@ -750,10 +769,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
+    if (!this.isBrowser) return;
     window.addEventListener('message', this.messageListener);
   }
 
   ngOnDestroy(): void {
+    if (!this.isBrowser) return;
     window.removeEventListener('message', this.messageListener);
   }
 
@@ -822,6 +843,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         onClose: () => {
           this.processing.set(false);
           this.errorMessage.set('Payment was not completed. You can try again later.');
+        },
+        onError: (message: string) => {
+          this.processing.set(false);
+          this.errorMessage.set(message || 'Unable to load Paystack checkout.');
         },
       });
     } catch {
