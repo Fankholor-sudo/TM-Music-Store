@@ -2,10 +2,13 @@ require('dotenv').config();
 const fs = require('node:fs');
 
 const config = {
+  whatsappNumber: process.env.WHATSAPPNUMBER,
+  resendApiKey: process.env.RESEND_API_KEY,
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-  whatsappNumber: process.env.WHATSAPPNUMBER,
-  paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY
+  supabaseSecretKey: process.env.SUPABASE_SECRET_KEY,
+  paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY,
+  paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
 };
 
 for (const [name, value] of Object.entries(config)) {

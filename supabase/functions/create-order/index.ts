@@ -142,9 +142,10 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const paystackSecretKey = Deno.env.get("PAYSTACK_SECRET_KEY");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseSecretKey = Deno.env.get("SUPABASE_SECRET_KEY");
+    const serviceRoleKey = supabaseSecretKey ? (JSON.parse(supabaseSecretKey) as Record<string, string>)['default'] : undefined;
 
     if (!supabaseUrl || !serviceRoleKey || !paystackSecretKey) {
       return json(
