@@ -528,12 +528,6 @@ export async function sendConfirmationEmail(
     </html>
   `;
 
-  // Send email through Resend.
-  console.log("Sending confirmation email:", {
-    orderId,
-    reference: order.reference,
-  });
-
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -575,9 +569,4 @@ export async function sendConfirmationEmail(
       error: updateError.message,
     });
   }
-
-  console.log("Confirmation email accepted:", {
-    orderId,
-    reference: order.reference,
-  });
 }

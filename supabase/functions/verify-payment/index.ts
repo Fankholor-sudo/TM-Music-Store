@@ -178,7 +178,6 @@ Deno.serve(async (req: Request) => {
     });
   } catch (error) {
     console.error("verify-payment error", error);
-
     return json(
       {
         success: false,
