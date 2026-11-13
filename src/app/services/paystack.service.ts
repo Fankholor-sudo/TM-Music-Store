@@ -112,7 +112,6 @@ export class PaystackService {
       },
 
       onError: (error) => {
-        console.error('Paystack transaction error:', error);
         callbacks.onError?.(error.message);
       },
     });
@@ -156,7 +155,6 @@ export class PaystackService {
       },
 
       onError: (error: PaystackError) => {
-        console.error('Paystack transaction error:', error);
         params.callbacks.onError?.(error.message);
       },
     });

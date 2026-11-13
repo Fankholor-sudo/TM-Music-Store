@@ -845,7 +845,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
           this.errorMessage.set('Payment was not completed. You can try again later.');
         },
         onError: (message: string) => {
-          console.error('Paystack error:', message);
           this.processing.set(false);
           this.errorMessage.set(message || 'Unable to load Paystack checkout.');
         },

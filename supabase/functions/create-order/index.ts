@@ -238,7 +238,6 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (orderError || !order) {
-      console.error("CREATE ORDER DATABASE INSERT FAILED:", orderError);
       return json(
         { success: false, error: "Could not create the order" },
         500,
@@ -255,18 +254,11 @@ Deno.serve(async (req: Request) => {
       );
 
     if (itemsError) {
-      console.error("CREATE ORDER ITEMS INSERT FAILED:", itemsError);
       return json(
         { success: false, error: "Could not create the order" },
         500,
       );
     }
-
-    console.log("Starting Paystack initialization:", {
-      reference,
-      amount: Math.round(total * 100),
-      currency: "ZAR",
-    });
 
     const paystackResponse = await fetch(
       "https://api.paystack.co/transaction/initialize",
