@@ -144,8 +144,7 @@ Deno.serve(async (req: Request) => {
 
     const paystackSecretKey = Deno.env.get("PAYSTACK_SECRET_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseSecretKey = Deno.env.get("SUPABASE_SECRET_KEY");
-    const serviceRoleKey = supabaseSecretKey ? (JSON.parse(supabaseSecretKey) as Record<string, string>)['default'] : undefined;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
 
     if (!supabaseUrl || !serviceRoleKey || !paystackSecretKey) {
       return json(
@@ -196,14 +195,11 @@ Deno.serve(async (req: Request) => {
       0,
     );
 
-    const shippingCost =
-      payload.shipping_method === "door_delivery" ? 80 : 0;
+    const shippingCost = payload.shipping_method === "door_delivery" ? 80 : 0;
 
     const total = subtotal + shippingCost;
 
-    const reference =
-      `MH-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
-
+    const reference = `MH-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -242,6 +238,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (orderError || !order) {
+      console.error("CREATE ORDER DATABASE INSERT FAILED:", orderError);
       return json(
         { success: false, error: "Could not create the order" },
         500,
@@ -258,13 +255,18 @@ Deno.serve(async (req: Request) => {
       );
 
     if (itemsError) {
-      console.error("create-order item insert failed", itemsError);
-
+      console.error("CREATE ORDER ITEMS INSERT FAILED:", itemsError);
       return json(
         { success: false, error: "Could not create the order" },
         500,
       );
     }
+
+    console.log("Starting Paystack initialization:", {
+      reference,
+      amount: Math.round(total * 100),
+      currency: "ZAR",
+    });
 
     const paystackResponse = await fetch(
       "https://api.paystack.co/transaction/initialize",
@@ -289,7 +291,13 @@ Deno.serve(async (req: Request) => {
       },
     );
 
-    const payment = await paystackResponse.json();
+    const paystackResponseText = await paystackResponse.text();
+    let payment: any;
+    try {
+      payment = JSON.parse(paystackResponseText);
+    } catch {
+      throw new Error("PAYSTACK_INVALID_RESPONSE");
+    }
 
     if (
       !paystackResponse.ok ||

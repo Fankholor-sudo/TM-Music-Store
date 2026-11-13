@@ -6,7 +6,6 @@ const config = {
   resendApiKey: process.env.RESEND_API_KEY,
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-  supabaseSecretKey: process.env.SUPABASE_SECRET_KEY,
   paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY,
   paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
 };

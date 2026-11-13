@@ -4,20 +4,39 @@ import { environment } from '../../environments/environment';
 export interface PaystackCallbacks {
   onSuccess: (reference: string) => void;
   onClose: () => void;
+  onError?: (message: string) => void;
 }
 
-interface PaystackHandler {
-  open: () => void;
+interface PaystackTransaction {
+  reference: string;
 }
 
-interface PaystackInline {
-  setup: (config: Record<string, unknown>) => PaystackHandler;
-  resumeTransaction: (accessCode: string, callbacks: Record<string, unknown>) => void;
+interface PaystackError {
+  message: string;
+}
+
+interface PaystackResumeCallbacks {
+  onSuccess: (transaction: PaystackTransaction) => void;
+  onCancel: () => void;
+  onError: (error: PaystackError) => void;
+}
+
+interface PaystackInlineInstance {
+  resumeTransaction: (
+    accessCode: string,
+    callbacks?: PaystackResumeCallbacks,
+  ) => void;
+
+  newTransaction: (config: Record<string, unknown>) => void;
+}
+
+interface PaystackInlineConstructor {
+  new (): PaystackInlineInstance;
 }
 
 declare global {
   interface Window {
-    PaystackPop?: PaystackInline;
+    PaystackPop?: PaystackInlineConstructor;
   }
 }
 
@@ -37,6 +56,7 @@ export class PaystackService {
     const prefix = 'MUSO';
     const timestamp = Date.now().toString(36).toUpperCase();
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+
     return `${prefix}-${timestamp}-${random}`;
   }
 
@@ -46,12 +66,24 @@ export class PaystackService {
         resolve();
         return;
       }
+      
       const script = this.document.createElement('script');
-      script.src = 'https://js.paystack.co/v1/inline.min.js';
+
+      script.src = 'https://js.paystack.co/v2/inline.js';
       script.async = true;
-      script.onload = () => resolve();
-      script.onerror = () =>
+
+      script.onload = () => {
+        if (this.window.PaystackPop) {
+          resolve();
+        } else {
+          reject(new Error('Paystack payment library not available.'));
+        }
+      };
+
+      script.onerror = () => {
         reject(new Error('Failed to load Paystack payment script.'));
+      };
+
       this.document.head.appendChild(script);
     });
   }
@@ -61,12 +93,28 @@ export class PaystackService {
     callbacks: PaystackCallbacks,
   ): Promise<void> {
     await this.loadScript();
-    if (!this.window.PaystackPop) {
+
+    const PaystackPop = this.window.PaystackPop;
+
+    if (!PaystackPop) {
       throw new Error('Paystack payment library not available.');
     }
-    this.window.PaystackPop.resumeTransaction(accessCode, {
-      callback: (response: { reference: string }) => callbacks.onSuccess(response.reference),
-      onClose: callbacks.onClose,
+
+    const popup = new PaystackPop();
+
+    popup.resumeTransaction(accessCode, {
+      onSuccess: (transaction) => {
+        callbacks.onSuccess(transaction.reference);
+      },
+
+      onCancel: () => {
+        callbacks.onClose();
+      },
+
+      onError: (error) => {
+        console.error('Paystack transaction error:', error);
+        callbacks.onError?.(error.message);
+      },
     });
   }
 
@@ -81,24 +129,36 @@ export class PaystackService {
   }): Promise<void> {
     await this.loadScript();
 
-    if (!this.window.PaystackPop) {
+    const PaystackPop = this.window.PaystackPop;
+
+    if (!PaystackPop) {
       throw new Error('Paystack payment library not available.');
     }
 
-    const handler = this.window.PaystackPop.setup({
+    const popup = new PaystackPop();
+
+    popup.newTransaction({
       key: this.publicKey,
       email: params.email,
       amount: Math.round(params.amount * 100),
       currency: 'ZAR',
-      ref: params.reference,
-      firstname: params.firstName,
-      lastname: params.lastName,
+      reference: params.reference,
+      firstName: params.firstName,
+      lastName: params.lastName,
       phone: params.phone,
-      callback: (response: { reference: string }) =>
-        params.callbacks.onSuccess(response.reference),
-      onClose: () => params.callbacks.onClose(),
-    });
 
-    handler.open();
+      onSuccess: (transaction: PaystackTransaction) => {
+        params.callbacks.onSuccess(transaction.reference);
+      },
+
+      onCancel: () => {
+        params.callbacks.onClose();
+      },
+
+      onError: (error: PaystackError) => {
+        console.error('Paystack transaction error:', error);
+        params.callbacks.onError?.(error.message);
+      },
+    });
   }
 }
