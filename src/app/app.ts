@@ -10,9 +10,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ProductService } from './services/product.service';
-import { Category } from './models/product.model';
-import { WhatsAppService } from './services/whatsapp.service';
+import { ProductService } from '@/app/services/product.service';
+import { Category } from '@/app/models/product.model';
+import { WhatsAppService } from '@/app/services/whatsapp.service';
+import { CartService } from '@/app/services/cart.service';
 
 @Component({
   selector: 'app-root',
@@ -179,6 +180,18 @@ import { WhatsAppService } from './services/whatsapp.service';
                     />
                   </mat-form-field>
                 </form>
+
+                <a
+                  mat-icon-button
+                  routerLink="/cart"
+                  class="tm-header__cart-btn"
+                  aria-label="Shopping cart"
+                >
+                  <mat-icon>shopping_cart</mat-icon>
+                  @if (cart.totalItems() > 0) {
+                    <span class="tm-header__cart-badge">{{ cart.totalItems() }}</span>
+                  }
+                </a>
 
                 <button
                   mat-icon-button
@@ -367,6 +380,27 @@ import { WhatsAppService } from './services/whatsapp.service';
       .tm-header__menu-btn {
         display: none;
       }
+      .tm-header__cart-btn {
+        position: relative;
+        flex-shrink: 0;
+      }
+      .tm-header__cart-badge {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: var(--tm-primary);
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 700;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        line-height: 1;
+      }
       .tm-main {
         min-height: 60vh;
         padding-top: 68px;
@@ -533,6 +567,7 @@ export class App {
   constructor(
     private products: ProductService,
     public whatsapp: WhatsAppService,
+    public cart: CartService,
     private router: Router,
   ) {
     this.products.getCategories().subscribe((cats) => {

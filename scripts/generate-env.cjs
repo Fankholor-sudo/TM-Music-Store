@@ -5,10 +5,13 @@ const config = {
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
   whatsappNumber: process.env.WHATSAPPNUMBER,
+  paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY
 };
 
 for (const [name, value] of Object.entries(config)) {
-  if (!value) throw new Error(`Missing .env value for ${name}`);
+  if (!value && !optionalKeys.has(name)) {
+    throw new Error(`Missing .env value for ${name}`);
+  }
 }
 
 fs.mkdirSync('src/environments', { recursive: true });

@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { ProductService } from '../../services/product.service';
-import { Category, Product } from '../../models/product.model';
-import { ProductCardComponent } from '../../components/product-card/product-card.component';
+import { ProductService } from '@/app/services/product.service';
+import { Category, Product } from '@/app/models/product.model';
+import { ProductCardComponent } from '@/app/components/product-card/product-card.component';
 
 @Component({
   selector: 'app-category',

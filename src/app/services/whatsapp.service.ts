@@ -1,6 +1,6 @@
 import { Injectable, inject, DOCUMENT } from '@angular/core';
-import { environment } from '../../environments/environment';
-import { Product } from '../models/product.model';
+import { environment } from '@/environments/environment';
+import { Product } from '@/app/models/product.model';
 
 @Injectable({ providedIn: 'root' })
 export class WhatsAppService {

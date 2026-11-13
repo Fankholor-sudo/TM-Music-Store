@@ -7,10 +7,11 @@ import { MatChipsModule } from '@angular/material/chips';
 import { Meta, Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 
-import { ProductService } from '../../services/product.service';
-import { WhatsAppService } from '../../services/whatsapp.service';
-import { Product } from '../../models/product.model';
-import { ProductCardComponent } from '../../components/product-card/product-card.component';
+import { ProductService } from '@/app/services/product.service';
+import { WhatsAppService } from '@/app/services/whatsapp.service';
+import { CartService } from '@/app/services/cart.service';
+import { Product } from '@/app/models/product.model';
+import { ProductCardComponent } from '@/app/components/product-card/product-card.component';
 
 
 @Component({
@@ -75,26 +76,53 @@ import { ProductCardComponent } from '../../components/product-card/product-card
             </div>
             <p class="detail-desc">{{ p.description }}</p>
 
-            <div class="detail-actions">
-              <a
+            <div class="detail-qty-section">
+              <div class="detail-qty">
+                <button
+                  mat-icon-button
+                  class="detail-qty__btn"
+                  (click)="decrementQty()"
+                  aria-label="Decrease quantity"
+                >
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span class="detail-qty__value">{{ selectedQty() }}</span>
+                <button
+                  mat-icon-button
+                  class="detail-qty__btn"
+                  (click)="incrementQty()"
+                  aria-label="Increase quantity"
+                >
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+              <button
                 mat-flat-button
-                class="tm-whatsapp-btn detail-order-btn"
-                [href]="whatsapp.orderUrl(p, activeImageIndex())"
-                target="_blank"
-                rel="noopener"
+                class="tm-primary-btn detail-add-cart-btn"
+                (click)="addToCart(p)"
               >
-                <mat-icon>chat</mat-icon> Order on WhatsApp
-              </a>
-              <a
-                mat-stroked-button
-                class="tm-outline-btn"
-                [href]="whatsapp.contactUrl('I have a question about the ' + p.name + '.')"
-                target="_blank"
-                rel="noopener"
-              >
-                <mat-icon>help_outline</mat-icon> Ask a Question
-              </a>
+                <mat-icon>add_shopping_cart</mat-icon> Add to Cart
+              </button>
+              <div class="detail-actions">
+                <a
+                  mat-stroked-button
+                  class="tm-outline-btn"
+                  [href]="whatsapp.contactUrl('I have a question about the ' + p.name + '.')"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <mat-icon>help_outline</mat-icon> Ask a Question
+                </a>
+              </div>
             </div>
+
+            @if (addedToCartMsg()) {
+              <div class="detail-added-msg">
+                <mat-icon>check_circle</mat-icon>
+                {{ addedToCartMsg() }}
+                <a routerLink="/cart" class="detail-added-link">View Cart</a>
+              </div>
+            }
 
             @if (hasSpecs(p)) {
               <div class="specs">
@@ -262,20 +290,75 @@ import { ProductCardComponent } from '../../components/product-card/product-card
         color: var(--tm-text-muted);
         margin: 0 0 28px;
       }
+      .detail-qty-section {
+        gap: 16px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+      .detail-qty {
+        gap: 4px;
+        display: flex;
+        align-items: center;
+        background: var(--tm-bg);
+        border-radius: var(--tm-radius-sm);
+        padding: 2px;
+      }
+      .detail-qty__btn mat-icon {
+        width: 18px;
+        height: 18px;
+        font-size: 18px;
+        line-height: 18px;
+      }
+      .detail-qty__btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .detail-qty__value {
+        min-width: 32px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1rem;
+      }
+      .detail-add-cart-btn {
+        height: 38px;
+        font-size: 1rem;
+        padding: 0 24px;
+        flex: 1;
+        min-width: 180px;
+      }
+      .detail-added-msg {
+        gap: 8px;
+        display: flex;
+        align-items: center;
+        background: rgba(0, 121, 107, 0.06);
+        border: 1px solid rgba(0, 121, 107, 0.2);
+        border-radius: var(--tm-radius-sm);
+        padding: 10px 14px;
+        font-size: 0.88rem;
+        color: var(--tm-primary-dark);
+        margin-bottom: 20px;
+      }
+      .detail-added-msg mat-icon {
+        color: var(--tm-primary);
+        flex-shrink: 0;
+      }
+      .detail-added-link {
+        margin-left: auto;
+        font-weight: 600;
+      }
       .detail-actions {
+        gap: 12px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        margin-bottom: 32px;
       }
       .detail-actions a {
         width: 100%;
         justify-content: center;
-      }
-      .detail-order-btn {
-        height: 48px;
-        font-size: 1rem;
-        padding: 0 24px;
       }
       @media (min-width: 600px) {
         .detail-actions {
@@ -360,7 +443,7 @@ import { ProductCardComponent } from '../../components/product-card/product-card
       }
       @media (max-width: 480px) {
         .detail-page {
-          padding: 16px 0 48px;
+          padding: 16px 12px;
         }
         .breadcrumb {
           margin-bottom: 16px;
@@ -386,12 +469,15 @@ export class ProductDetailComponent implements OnInit {
   private document = inject(DOCUMENT);
 
   whatsapp = inject(WhatsAppService);
+  private cartService = inject(CartService);
 
   product = signal<Product | null>(null);
   related = signal<Product[]>([]);
   activeImage = signal<string>('');
   activeImageIndex = signal(0);
   loading = signal(true);
+  selectedQty = signal(1);
+  addedToCartMsg = signal('');
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -489,7 +575,7 @@ export class ProductDetailComponent implements OnInit {
   selectImage(img: string, index: number): void {
     this.activeImage.set(img);
     this.activeImageIndex.set(index);
-    
+
     const p = this.product();
     if (p) { this.updateProductMetadata(p); }
 
@@ -499,6 +585,24 @@ export class ProductDetailComponent implements OnInit {
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  }
+
+  incrementQty(): void {
+    if (this.selectedQty() < 99) {
+      this.selectedQty.set(this.selectedQty() + 1);
+    }
+  }
+
+  decrementQty(): void {
+    if (this.selectedQty() > 1) {
+      this.selectedQty.set(this.selectedQty() - 1);
+    }
+  }
+
+  addToCart(p: Product): void {
+    this.cartService.addToCart(p, this.selectedQty());
+    this.addedToCartMsg.set('Added to cart!');
+    setTimeout(() => this.addedToCartMsg.set(''), 3000);
   }
 
   hasSpecs(p: Product): boolean {
