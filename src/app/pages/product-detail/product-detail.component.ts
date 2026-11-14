@@ -98,8 +98,10 @@ import { ProductCardComponent } from '@/app/components/product-card/product-card
               </div>
               <button
                 mat-flat-button
-                class="tm-primary-btn detail-add-cart-btn"
+                class="detail-add-cart-btn"
+                [class]="p.availability === 'Out of Stock' ? 'tm-secondary-btn': 'tm-primary-btn'"
                 (click)="addToCart(p)"
+                [disabled]="p.availability === 'Out of Stock'"
               >
                 <mat-icon>add_shopping_cart</mat-icon> Add to Cart
               </button>
@@ -600,7 +602,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   addToCart(p: Product): void {
-    this.cartService.addToCart(p, this.selectedQty());
+    this.cartService.addToCart(p, this.selectedQty(), this.activeImage());
     this.addedToCartMsg.set('Added to cart!');
     setTimeout(() => this.addedToCartMsg.set(''), 3000);
   }
