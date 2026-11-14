@@ -816,7 +816,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       delivery_postal_code: this.shippingMethod === 'door_delivery' ? this.deliveryPostalCode : null,
       delivery_latitude: this.shippingMethod === 'door_delivery' ? this.mapLat() : null,
       delivery_longitude: this.shippingMethod === 'door_delivery' ? this.mapLng() : null,
-      items: this.cart.cartItems().map((item) => ({ product_id: item.product_id, quantity: item.quantity })),
+      items: this.cart.cartItems().map((item) => ({ product_id: item.product_id, quantity: item.quantity, image_url: item.image_url})),
     };
 
     const result = await this.orders.createOrder(payload);

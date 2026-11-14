@@ -9,6 +9,7 @@ const corsHeaders = {
 interface ItemInput {
   product_id: string;
   quantity: number;
+  image_url: string;
 }
 
 interface CreateOrderPayload {
@@ -30,6 +31,7 @@ interface ProductRow {
   id: string;
   name: string;
   image_url: string;
+  additional_images: string[] | null;
   price: number;
   availability: string;
 }
@@ -121,30 +123,20 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const quantities = new Map<string, number>();
-
     for (const item of payload.items) {
-      if (
-        !item.product_id ||
-        !Number.isInteger(item.quantity) ||
-        item.quantity < 1 ||
-        item.quantity > 99
+      if (!item.product_id || typeof item.image_url !== "string" || !item.image_url.trim() ||
+        !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 99
       ) {
         return json(
-          { success: false, error: "Invalid product quantity" },
+          { success: false, error: "Invalid product quantity or image" },
           400,
         );
       }
-
-      quantities.set(
-        item.product_id,
-        (quantities.get(item.product_id) ?? 0) + item.quantity,
-      );
     }
 
     const paystackSecretKey = Deno.env.get("PAYSTACK_SECRET_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!supabaseUrl || !serviceRoleKey || !paystackSecretKey) {
       return json(
@@ -154,11 +146,11 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
-    const ids = [...quantities.keys()];
+    const ids = [...new Set(payload.items.map((item) => item.product_id))];
 
     const { data: products, error: productsError } = await supabase
       .from("products")
-      .select("id, name, image_url, price, availability")
+      .select("id, name, image_url, additional_images, price, availability")
       .in("id", ids);
 
     if (productsError || !products || products.length !== ids.length) {
@@ -172,23 +164,48 @@ Deno.serve(async (req: Request) => {
       (products as ProductRow[]).map((product) => [product.id, product]),
     );
 
-    const orderItems = ids.map((id) => {
-      const product = productById.get(id)!;
-      const quantity = quantities.get(id)!;
+    const orderItems = [];
 
-      if (product.availability === "Out of Stock") {
-        throw new Error("OUT_OF_STOCK");
+    for (const item of payload.items) {
+      const product = productById.get(item.product_id);
+
+      if (!product) {
+        return json(
+          { success: false, error: "Product not found" },
+          400,
+        );
       }
 
-      return {
+      if (product.availability === "Out of Stock") {
+        return json(
+          { success: false, error: `${product.name} is out of stock` },
+          400,
+        );
+      }
+
+      const allowedImages = [
+        product.image_url,
+        ...(product.additional_images ?? []),
+      ].filter((image): image is string => typeof image === "string");
+
+      if (!allowedImages.includes(item.image_url)) {
+        return json(
+          { success: false, error: `Invalid image selected for ${product.name}` },
+          400,
+        );
+      }
+
+      const unitPrice = Number(product.price);
+
+      orderItems.push({
         product_id: product.id,
         product_name: product.name,
-        product_image: product.image_url,
-        unit_price: Number(product.price),
-        quantity,
-        line_total: Number(product.price) * quantity,
-      };
-    });
+        product_image: item.image_url,
+        unit_price: unitPrice,
+        quantity: item.quantity,
+        line_total: unitPrice * item.quantity,
+      });
+    }
 
     const subtotal = orderItems.reduce(
       (sum, item) => sum + item.line_total,

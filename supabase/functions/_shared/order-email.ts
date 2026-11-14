@@ -537,6 +537,7 @@ export async function sendConfirmationEmail(
     body: JSON.stringify({
       from: "MusoHive <orders@musohive.co.za>",
       to: [order.email],
+      bcc: ["orders@musohive.co.za"],
       subject: `MusoHive Order Confirmation - ${order.reference}`,
       html,
     }),

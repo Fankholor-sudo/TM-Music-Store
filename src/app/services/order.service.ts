@@ -1,9 +1,10 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
 export interface CheckoutItemInput {
   product_id: string;
   quantity: number;
+  image_url: string;
 }
 
 export interface CreateOrderPayload {

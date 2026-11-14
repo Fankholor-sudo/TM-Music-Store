@@ -43,8 +43,9 @@ import { CartService } from '@/app/services/cart.service';
           >
           <button
             mat-flat-button
-            class="tm-primary-btn"
+            [class]="product.availability === 'Out of Stock' ? 'tm-secondary-btn': 'tm-primary-btn'"
             (click)="addToCart()"
+            [disabled]="product.availability === 'Out of Stock'"
           >
             <mat-icon>add_shopping_cart</mat-icon>
             Add to Cart

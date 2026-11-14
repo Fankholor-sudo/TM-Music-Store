@@ -22,14 +22,25 @@ export class CartService {
     ),
   );
 
-  addToCart(product: Product, quantity = 1): void {
+
+  addToCart(product: Product, quantity = 1, selectedImage?: string): void {
     const current = this.items();
-    const existing = current.find((i) => i.product_id === product.id);
+    const imageUrl = selectedImage || product.image_url;
+
+    const existing = current.find(
+      (i) =>
+        i.product_id === product.id &&
+        i.image_url === imageUrl,
+    );
+
     if (existing) {
       const newQty = Math.min(existing.quantity + quantity, MAX_QTY);
+
       this.items.set(
         current.map((i) =>
-          i.product_id === product.id ? { ...i, quantity: newQty } : i,
+          i.product_id === product.id && i.image_url === imageUrl
+            ? { ...i, quantity: newQty }
+            : i,
         ),
       );
     } else {
@@ -41,46 +52,63 @@ export class CartService {
           slug: product.slug,
           brand: product.brand,
           price: product.price,
-          image_url: product.image_url,
+          image_url: imageUrl,
           quantity: Math.min(quantity, MAX_QTY),
           max_quantity: MAX_QTY,
         },
       ]);
     }
+
     this.saveToStorage();
   }
 
-  updateQuantity(productId: string, quantity: number): void {
+  updateQuantity(productId: string, imageUrl: string, quantity: number): void {
     if (quantity < 1) return;
+
     const clamped = Math.min(quantity, MAX_QTY);
+
     this.items.set(
       this.items().map((i) =>
-        i.product_id === productId ? { ...i, quantity: clamped } : i,
+        i.product_id === productId && i.image_url === imageUrl
+          ? { ...i, quantity: clamped }
+          : i,
       ),
     );
+
     this.saveToStorage();
   }
 
-  increment(productId: string): void {
-    const item = this.items().find((i) => i.product_id === productId);
+  increment(productId: string, imageUrl: string): void {
+    const item = this.items().find(
+      (i) => i.product_id === productId && i.image_url === imageUrl,
+    );
+
     if (item) {
-      this.updateQuantity(productId, item.quantity + 1);
+      this.updateQuantity(productId, imageUrl, item.quantity + 1);
     }
   }
 
-  decrement(productId: string): void {
-    const item = this.items().find((i) => i.product_id === productId);
+  decrement(productId: string, imageUrl: string): void {
+    const item = this.items().find(
+      (i) => i.product_id === productId && i.image_url === imageUrl,
+    );
+
     if (item) {
       if (item.quantity <= 1) {
-        this.removeItem(productId);
+        this.removeItem(productId, imageUrl);
       } else {
-        this.updateQuantity(productId, item.quantity - 1);
+        this.updateQuantity(productId, imageUrl, item.quantity - 1);
       }
     }
   }
 
-  removeItem(productId: string): void {
-    this.items.set(this.items().filter((i) => i.product_id !== productId));
+  removeItem(productId: string, imageUrl: string): void {
+    this.items.set(
+      this.items().filter(
+        (i) => !(i.product_id === productId && i.image_url === imageUrl),
+      ),
+    );
+
     this.saveToStorage();
   }
 

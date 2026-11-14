@@ -1,5 +1,15 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import {
+  RouterOutlet,
+  RouterLink,
+  RouterLinkActive,
+  Router,
+  NavigationEnd,
+} from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, inject } from '@angular/core';
+
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,7 +19,6 @@ import { MatListModule } from '@angular/material/list';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { ProductService } from '@/app/services/product.service';
 import { Category } from '@/app/models/product.model';
 import { WhatsAppService } from '@/app/services/whatsapp.service';
@@ -319,24 +328,21 @@ import { CartService } from '@/app/services/cart.service';
         transition: background 0.15s ease, color 0.15s ease;
       }
       .tm-header__cat-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-
-        padding: 8px 14px;
-        border-radius: 6px;
-
-        font-family: inherit;
-        font-weight: 500;
-        font-size: 0.92rem;
-        color: var(--tm-text);
-
-        background: transparent;
-        border: 0;
-        cursor: pointer;
-
-        transition: background 0.15s ease, color 0.15s ease;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        white-space: nowrap;
+      }
+      .tm-header__cat-btn .mdc-button__label {
+        order: 1;
+      }
+      .tm-header__cat-arrow {
+        order: 2;
+        flex: 0 0 auto;
+        margin-left: 6px;
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
       }
       .tm-header__nav a:hover,
       .tm-header__cat-btn:hover {
@@ -346,13 +352,6 @@ import { CartService } from '@/app/services/cart.service';
       .tm-header__nav a.active {
         color: var(--tm-primary);
         background: rgba(0, 121, 107, 0.08);
-      }
-      .tm-header__cat-arrow {
-        flex: 0 0 auto;
-        font-size: 1rem;
-        width: 1rem;
-        height: 1rem;
-        margin-left: 2px;
       }
       .tm-header__actions {
         min-width: 0;
@@ -508,6 +507,9 @@ import { CartService } from '@/app/services/cart.service';
         color: var(--tm-text-muted);
         font-weight: 600;
       }
+      mat-nav-list a {
+        left: 10px;
+      }
       .active-link {
         color: var(--tm-primary) !important;
         background: rgba(0, 121, 107, 0.08);
@@ -563,6 +565,7 @@ export class App {
   searchTerm = '';
   year = new Date().getFullYear();
   categories = signal<Category[]>([]);
+  private readonly platformId = inject(PLATFORM_ID);
 
   constructor(
     private products: ProductService,
@@ -573,6 +576,24 @@ export class App {
     this.products.getCategories().subscribe((cats) => {
       this.categories.set(cats);
     });
+
+    // Reset scroll position after every successful navigation
+    this.router.events
+      this.router.events
+        .pipe(
+          filter(
+            (event): event is NavigationEnd =>
+              event instanceof NavigationEnd,
+          ),
+        )
+        .subscribe(() => {
+          if (isPlatformBrowser(this.platformId)) {
+            requestAnimationFrame(() => {
+              document.body.scrollTop = 0;
+              document.documentElement.scrollTop = 0;
+            });
+          }
+        });
   }
 
   onSearch(): void {
