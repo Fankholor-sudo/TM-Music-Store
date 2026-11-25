@@ -12,6 +12,7 @@ import { SearchComponent } from '@/app/pages/search/search.component';
 import { CategoryComponent } from '@/app/pages/category/category.component';
 import { CartComponent } from '@/app/pages/cart/cart.component';
 import { CheckoutComponent } from '@/app/pages/checkout/checkout.component';
+import { PoliciesComponent } from '@/app/pages/policies/policies.component';
 
 const routes = [
   { path: '', component: HomeComponent, title: 'MusoHive — Quality Music Accessories' },
@@ -23,6 +24,7 @@ const routes = [
   { path: 'checkout', component: CheckoutComponent, title: 'Checkout — MusoHive' },
   { path: 'about', component: AboutComponent, title: 'About — MusoHive' },
   { path: 'contact', component: ContactComponent, title: 'Contact — MusoHive' },
+  { path: 'policies', component: PoliciesComponent, title: 'Store Policies | MusoHive' },
   { path: '**', redirectTo: '' },
 ];
 

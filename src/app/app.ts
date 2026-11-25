@@ -254,9 +254,8 @@ import { CartService } from '@/app/services/cart.service';
               <h4>Company</h4>
               <a routerLink="/about">About Us</a>
               <a routerLink="/contact">Contact</a>
-              <a [href]="whatsapp.contactUrl()" target="_blank" rel="noopener"
-                >WhatsApp Support</a
-              >
+              <a routerLink="/policies">Store Policies</a>
+              <a [href]="whatsapp.contactUrl()" target="_blank" rel="noopener">WhatsApp Support</a>
             </div>
           </div>
           <div class="tm-footer__bar">
