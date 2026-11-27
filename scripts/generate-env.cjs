@@ -6,6 +6,7 @@ const config = {
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
   paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY,
+  geoapifyKey: process.env.GEOAPIFY_KEY,
 };
 
 for (const [name, value] of Object.entries(config)) {

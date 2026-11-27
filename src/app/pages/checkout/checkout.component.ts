@@ -7,6 +7,7 @@ import {
   OnDestroy,
   PLATFORM_ID
 } from '@angular/core';
+import {debounceTime, Subject, Subscription} from 'rxjs';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,6 +24,8 @@ import { FormsModule } from '@angular/forms';
 import { CartService } from '@/app/services/cart.service';
 import { PaystackService } from '@/app/services/paystack.service';
 import { CreateOrderPayload, OrderService } from '@/app/services/order.service';
+import { GeoapifyService, GeoapifyPlace } from '@/app/services/geoapify.service';
+import { MapPickerModalComponent } from '@/app/components/map-picker-modal/map-picker-modal.component';
 
 interface PepStore {
   name: string;
@@ -45,6 +48,7 @@ interface PepStore {
     MatProgressBarModule,
     MatCardModule,
     FormsModule,
+    MapPickerModalComponent,
   ],
   template: `
     <div class="tm-container checkout-page">
@@ -156,7 +160,7 @@ interface PepStore {
                   [(ngModel)]="shippingMethod"
                   class="shipping-radio-group"
                 >
-                  <mat-radio-button value="pep_store" class="shipping-radio">
+                  <!-- <mat-radio-button value="pep_store" class="shipping-radio">
                     <div class="shipping-option">
                       <div class="shipping-option__title">
                         Collect at a Pep-Store
@@ -165,7 +169,7 @@ interface PepStore {
                         Choose the nearest Pep-Store for collection. Free of charge.
                       </div>
                     </div>
-                  </mat-radio-button>
+                  </mat-radio-button> -->
                   <mat-radio-button value="door_delivery" class="shipping-radio">
                     <div class="shipping-option">
                       <div class="shipping-option__title">
@@ -208,19 +212,35 @@ interface PepStore {
                   <div class="shipping-details">
                     <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
                       <mat-label>Street Address</mat-label>
-                      <textarea
+                      <input
                         matInput
+                        type="text"
                         name="deliveryAddress"
                         [(ngModel)]="deliveryAddress"
                         required
-                        rows="1"
-                        placeholder="House number, street name, suburb"
+                        placeholder="Start typing your address…"
+                        (ngModelChange)="onAddressInput($event)"
+                        (blur)="onAddressBlur()"
                         #addrInput="ngModel"
-                      ></textarea>
+                      />
                       @if (addrInput.invalid && addrInput.touched) {
                         <mat-error>Delivery address is required</mat-error>
                       }
                     </mat-form-field>
+                    @if (addressSuggestions().length > 0 && showSuggestions()) {
+                      <div class="addr-suggestions">
+                        @for (place of addressSuggestions(); track place.formatted) {
+                          <button
+                            type="button"
+                            class="addr-suggestion"
+                            (mousedown)="$event.preventDefault(); selectAddress(place)"
+                          >
+                            <mat-icon>location_on</mat-icon>
+                            <span>{{ place.formatted }}</span>
+                          </button>
+                        }
+                      </div>
+                    }
                     <div class="form-grid">
                       <mat-form-field appearance="outline" subscriptSizing="dynamic">
                         <mat-label>City</mat-label>
@@ -258,9 +278,8 @@ interface PepStore {
                           mat-stroked-button
                           class="tm-outline-btn map-btn"
                           (click)="openMapPicker()"
-                          disabled
                         >
-                          <mat-icon>map</mat-icon> Open Map - Coming Soon
+                          <mat-icon>map</mat-icon> Open Map
                         </button>
                       </div>
                       @if (mapLat() !== null && mapLng() !== null) {
@@ -276,24 +295,12 @@ interface PepStore {
                         </p>
                       }
                       @if (showMap()) {
-                        <div class="map-iframe-wrap">
-                          <iframe
-                            [src]="mapUrl()"
-                            width="100%"
-                            height="320"
-                            style="border:0; border-radius: var(--tm-radius);"
-                            loading="lazy"
-                            allowfullscreen
-                          ></iframe>
-                          <button
-                            type="button"
-                            mat-stroked-button
-                            class="tm-outline-btn map-done-btn"
-                            (click)="closeMapPicker()"
-                          >
-                            Done
-                          </button>
-                        </div>
+                        <app-map-picker-modal
+                          [initialLat]="mapLat()"
+                          [initialLng]="mapLng()"
+                          (locationSelected)="onMapLocationSelected($event)"
+                          (close)="closeMapPicker()"
+                        ></app-map-picker-modal>
                       }
                     </div>
                   </div>
@@ -551,14 +558,46 @@ interface PepStore {
         color: var(--tm-text-muted);
         margin: 4px 0 0;
       }
-      .map-iframe-wrap {
-        margin-top: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+      .addr-suggestions {
+        margin-top: -8px;
+        margin-bottom: 12px;
+        border: 1px solid var(--tm-border);
+        border-radius: var(--tm-radius-sm);
+        background: var(--tm-surface);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        max-height: 220px;
+        overflow-y: auto;
+        z-index: 10;
+        position: relative;
       }
-      .map-done-btn {
-        align-self: flex-start;
+      .addr-suggestion {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        width: 100%;
+        padding: 10px 14px;
+        border: none;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: var(--tm-text);
+        border-bottom: 1px solid var(--tm-border);
+        transition: background 0.15s;
+      }
+      .addr-suggestion:last-child {
+        border-bottom: none;
+      }
+      .addr-suggestion:hover {
+        background: var(--tm-bg);
+      }
+      .addr-suggestion mat-icon {
+        color: var(--tm-primary);
+        font-size: 1.1rem;
+        width: 1.1rem;
+        height: 1.1rem;
+        flex-shrink: 0;
+        margin-top: 1px;
       }
       .payment-info {
         display: flex;
@@ -730,6 +769,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   mapLng = signal<number | null>(null);
   showMap = signal(false);
 
+  addressSuggestions = signal<GeoapifyPlace[]>([]);
+  showSuggestions = signal(false);
+  addressSearchSub: Subscription | null = null;
+  private addressInput$ = new Subject<string>();
+
   processing = signal(false);
   errorMessage = signal('');
   orderSuccess = signal(false);
@@ -746,36 +790,25 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   ]);
 
   shippingCost = computed(() =>
-    this.shippingMethod === 'door_delivery' ? 80 : 0,
+    this.shippingMethod === 'door_delivery' ? 0 : 0,
   );
   total = computed(() => this.cart.subtotal() + this.shippingCost());
-
-  mapUrl = computed(() => {
-    const lat = this.mapLat() ?? -29.0;
-    const lng = this.mapLng() ?? 24.0;
-    return `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.02},${lat - 0.02},${lng + 0.02},${lat + 0.02}&layer=mapnik&marker=${lat},${lng}`;
-  });
 
   private get isBrowser(): boolean {
     return isPlatformBrowser(this.platformId);
   }
 
-  private messageListener = (event: MessageEvent) => {
-    if (event.data?.type === 'map-location' && event.data.lat && event.data.lng) {
-      this.mapLat.set(event.data.lat);
-      this.mapLng.set(event.data.lng);
-      this.showMap.set(false);
-    }
-  };
+  private geoapify = inject(GeoapifyService);
 
   ngOnInit(): void {
     if (!this.isBrowser) return;
-    window.addEventListener('message', this.messageListener);
+    this.addressSearchSub = this.addressInput$
+      .pipe(debounceTime(350))
+      .subscribe((query) => this.searchAddresses(query));
   }
 
   ngOnDestroy(): void {
-    if (!this.isBrowser) return;
-    window.removeEventListener('message', this.messageListener);
+    this.addressSearchSub?.unsubscribe();
   }
 
   openMapPicker(): void {
@@ -786,9 +819,49 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.showMap.set(false);
   }
 
+  onMapLocationSelected(place: GeoapifyPlace): void {
+    this.mapLat.set(place.lat);
+    this.mapLng.set(place.lon);
+    this.deliveryAddress = place.formatted;
+    this.deliveryCity = place.city || '';
+    this.deliveryPostalCode = place.postcode || '';
+    this.showMap.set(false);
+  }
+
   clearMapLocation(): void {
     this.mapLat.set(null);
     this.mapLng.set(null);
+  }
+
+  onAddressInput(value: string): void {
+    this.deliveryAddress = value;
+    if (value && value.trim().length >= 3) {
+      this.addressInput$.next(value);
+    } else {
+      this.addressSuggestions.set([]);
+      this.showSuggestions.set(false);
+    }
+  }
+
+  onAddressBlur(): void {
+    setTimeout(() => this.showSuggestions.set(false), 200);
+  }
+
+  private async searchAddresses(query: string): Promise<void> {
+    if (!this.isBrowser) return;
+    const results = await this.geoapify.autocomplete(query, 6);
+    this.addressSuggestions.set(results);
+    this.showSuggestions.set(results.length > 0);
+  }
+
+  selectAddress(place: GeoapifyPlace): void {
+    this.mapLat.set(place.lat);
+    this.mapLng.set(place.lon);
+    this.deliveryAddress = place.formatted;
+    this.showSuggestions.set(false);
+    this.addressSuggestions.set([]);
+    this.deliveryCity = place.city || '';
+    this.deliveryPostalCode = place.postcode || '';
   }
 
   async onSubmit(): Promise<void> {

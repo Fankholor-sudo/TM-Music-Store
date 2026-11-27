@@ -212,7 +212,7 @@ Deno.serve(async (req: Request) => {
       0,
     );
 
-    const shippingCost = payload.shipping_method === "door_delivery" ? 80 : 0;
+    const shippingCost = payload.shipping_method === "door_delivery" ? 0 : 0;
 
     const total = subtotal + shippingCost;
 
