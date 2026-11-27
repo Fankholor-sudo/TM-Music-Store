@@ -1,6 +1,7 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { environment } from '@/environments/environment';
+import { Injectable, inject, PLATFORM_ID } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
+import { environment } from "@/environments/environment";
+import { SupabaseService } from "./supabase.service";
 
 export interface GeoapifyPlace {
   formatted: string;
@@ -15,61 +16,92 @@ export interface GeoapifyPlace {
   country?: string;
 }
 
-@Injectable({ providedIn: 'root' })
+interface GeoapifyFunctionResponse {
+  success: boolean;
+  results?: any[];
+  result?: any;
+  error?: string;
+}
+
+@Injectable({ providedIn: "root" })
 export class GeoapifyService {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly supabase = inject(SupabaseService).supabase;
+
   private readonly apiKey = environment.geoapifyKey;
-  private readonly baseUrl = 'https://api.geoapify.com/v1';
 
   private get isBrowser(): boolean {
     return isPlatformBrowser(this.platformId);
   }
 
   async autocomplete(query: string, limit = 5): Promise<GeoapifyPlace[]> {
-    if (!this.isBrowser || !query || query.trim().length < 3 || !this.apiKey) {
+    if (!this.isBrowser || !query || query.trim().length < 3) {
       return [];
     }
-    const url =
-      `${this.baseUrl}/geocode/autocomplete?text=${encodeURIComponent(query)}` +
-      `&limit=${limit}&format=json&apiKey=${this.apiKey}`;
+
     try {
-      const res = await fetch(url);
-      if (!res.ok) return [];
-      const data = await res.json();
-      return (data.results ?? []).map((r: any) => this.mapResult(r));
-    } catch {
+      const { data, error } =
+        await this.supabase.functions.invoke<GeoapifyFunctionResponse>(
+          "geoapify",
+          {
+            body: {
+              action: "autocomplete",
+              query: query.trim(),
+              limit,
+            },
+          },
+        );
+
+      if (error) {
+        console.error("Geoapify Autocomplete Error:", error);
+        return [];
+      }
+
+      if (!data?.success) {
+        console.error("Geoapify Autocomplete Error:", data?.error);
+        return [];
+      }
+
+      return (data.results ?? []).map((r) => this.mapResult(r));
+    } catch (error) {
+      console.error("Geoapify Autocomplete Network Error:", error);
       return [];
     }
   }
 
-  async reverseGeocode(lat: number, lon: number): Promise<GeoapifyPlace | null> {
-    if (!this.isBrowser || !this.apiKey) {
-      console.error('Geoapify: API key missing or not running in browser.');
+  async reverseGeocode(
+    lat: number,
+    lon: number,
+  ): Promise<GeoapifyPlace | null> {
+    if (!this.isBrowser) {
       return null;
     }
 
-    const url =
-      `${this.baseUrl}/geocode/reverse?lat=${lat}&lon=${lon}` +
-      `&format=json&apiKey=${this.apiKey}`;
-
     try {
-      const res = await fetch(url);
+      const { data, error } =
+        await this.supabase.functions.invoke<GeoapifyFunctionResponse>(
+          "geoapify",
+          {
+            body: {
+              action: "reverse",
+              lat,
+              lon,
+            },
+          },
+        );
 
-      if (!res.ok) {
-        const error = await res.json();
-        console.error('Geoapify Reverse Geocoding Error:', {
-          status: res.status,
-          statusText: res.statusText,
-          error
-        });
+      if (error) {
+        console.error("Geoapify Reverse Geocoding Error:", error);
         return null;
       }
 
-      const data = await res.json();
-      const r = data.results?.[0];
-      return r ? this.mapResult(r) : null;
+      if (!data?.success) {
+        console.error("Geoapify Reverse Geocoding Error:", data?.error);
+        return null;
+      }
+      return data.result ? this.mapResult(data.result) : null;
     } catch (error) {
-      console.error('Geoapify Network Error:', error);
+      console.error("Geoapify Reverse Geocoding Network Error:", error);
       return null;
     }
   }
@@ -79,12 +111,12 @@ export class GeoapifyService {
   }
 
   getApiKey(): string {
-    return this.apiKey ?? '';
+    return this.apiKey ?? "";
   }
 
   private mapResult(r: any): GeoapifyPlace {
     return {
-      formatted: r.formatted ?? '',
+      formatted: r.formatted ?? "",
       lat: r.lat,
       lon: r.lon,
       city: r.city,

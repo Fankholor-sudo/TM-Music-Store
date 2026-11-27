@@ -186,7 +186,7 @@ export class MapPickerModalComponent implements AfterViewInit, OnDestroy {
     const lat = this.initialLat ?? -29.0;
     const lng = this.initialLng ?? 24.0;
     const apiKey = this.geoapify.getApiKey();
-    const tileUrl = this.geoapify.getMapStyleUrl('positron');
+    const tileUrl = this.geoapify.getMapStyleUrl('osm-bright');//osm-liberty , osm-bright, positron
 
     this.map = L.map(this.mapContainer.nativeElement, {
       center: [lat, lng],

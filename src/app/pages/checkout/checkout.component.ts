@@ -160,7 +160,7 @@ interface PepStore {
                   [(ngModel)]="shippingMethod"
                   class="shipping-radio-group"
                 >
-                  <mat-radio-button value="pep_store" class="shipping-radio">
+                  <!-- <mat-radio-button value="pep_store" class="shipping-radio">
                     <div class="shipping-option">
                       <div class="shipping-option__title">
                         Collect at a Pep-Store
@@ -169,7 +169,7 @@ interface PepStore {
                         Choose the nearest Pep-Store for collection. Free of charge.
                       </div>
                     </div>
-                  </mat-radio-button>
+                  </mat-radio-button> -->
                   <mat-radio-button value="door_delivery" class="shipping-radio">
                     <div class="shipping-option">
                       <div class="shipping-option__title">
@@ -790,7 +790,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   ]);
 
   shippingCost = computed(() =>
-    this.shippingMethod === 'door_delivery' ? 80 : 0,
+    this.shippingMethod === 'door_delivery' ? 0 : 0,
   );
   total = computed(() => this.cart.subtotal() + this.shippingCost());
 
